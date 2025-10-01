@@ -1,0 +1,32 @@
+# 数据库配置（MySQL）
+mysql:
+  # 数据库连接串（格式：用户名:密码@tcp(IP:端口)/数据库名?参数）
+  dsn: "root:bin5201314@tcp(127.0.0.1:3306)/my_blog?charset=utf8mb4&parseTime=True&loc=Local"
+  # 连接池配置：最大打开连接数（避免连接过多导致数据库压力）
+  max_open_conns: 100
+  # 连接池配置：最大空闲连接数（保留部分连接，避免频繁创建销毁）
+  max_idle_conns: 20
+  # 连接池配置：连接最大存活时间（避免长期闲置连接失效）
+  conn_max_lifetime_hour: 1
+  # 是否开启 SQL 日志（开发环境 true，生产环境 false）
+  log_mode: true
+
+# 服务端口
+server:
+  port: 8080
+
+# 公共日志配置
+# 开发环境配置（app.dev.yaml）- 覆盖公共配置
+log:
+  level: "debug"         # 开发环境打印 Debug 级日志
+  file_path: "./logs/backend.log" # 开发环境日志输出到项目内 logs 目录
+
+# Gin 环境配置（区分开发/生产）
+gin:
+  debug: true # 开发环境 ture，生产环境 false
+
+
+# JWT 配置
+jwt:
+  secret: "213123214242132132132" # 密钥（生产环境建议用环境变量注入）
+  expire_hour: 24                              # Token 有效期（小时），如 24 小时
