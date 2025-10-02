@@ -1,15 +1,15 @@
 package router
 
 import (
+	"go-my-blog/bootstrap"
 	"go-my-blog/config/priority_config"
-	"go-my-blog/internal/handler"    // 引入处理器（接口实现逻辑）
 	"go-my-blog/internal/middleware" // 引入中间件（如认证、日志）
 
 	"github.com/gin-gonic/gin"
 )
 
 // InitRouter 初始化路由：将所有 API 注册到 Gin 引擎
-func InitRouter(r *gin.Engine) {
+func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 	// 1. 全局中间件：所有路由都会经过的中间件（如日志、跨域）
 	r.Use(middleware.GinLogger())                                         // 自定义日志中间件（记录请求日志）
 	r.Use(middleware.GinRecovery(priority_config.PriorityConf.Gin.Debug)) // 异常恢复中间件（避免服务因 panic 崩溃）
@@ -19,7 +19,7 @@ func InitRouter(r *gin.Engine) {
 	public := r.Group("/api/v1")
 	{
 		// 用户相关公开接口
-		public.POST("/register", handler.UserRegister) // 用户注册
+		public.POST("/register", modules.UserHandler.UserRegister) // 用户注册
 		//public.POST("/login", handler.UserLogin)       // 用户登录
 
 		// 文章相关公开接口

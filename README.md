@@ -101,6 +101,11 @@ blog-backend/
   go get golang.org/x/crypto@v0.36.0
 ```
 
+### 映射工具
+```bash
+go get github.com/jinzhu/copier@v0.4.0
+```
+
 # 六、数据库设计与模型定义
 ```sql
 -- 创建my-blog数据库，若不存在则创建

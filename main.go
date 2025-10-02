@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-my-blog/bootstrap"
 	"go-my-blog/config"
 	priorityConfig "go-my-blog/config/priority_config"
 	"go-my-blog/pkg/db"
@@ -36,12 +37,15 @@ func main() {
 	logger.Info("开始初始化数据库")
 	db.Init()
 
-	// 4. 初始化 Gin 引擎和路由
+	// 4. 初始化所有modules
+	modules := bootstrap.InitAllModules(db.DB)
+
+	// 5. 初始化 Gin 引擎和路由
 	logger.Info("开始初始化路由")
 	r := gin.Default()
-	router.InitRouter(r)
+	router.InitRouter(r, modules)
 
-	// 5. 启动服务（依赖配置中的端口参数）
+	// 6. 启动服务（依赖配置中的端口参数）
 	port := config.Conf.Server.Port
 	logger.Info("服务启动成功", zap.Int("port", port))
 	if err := r.Run(fmt.Sprintf(":%d", port)); err != nil {
