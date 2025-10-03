@@ -5,6 +5,8 @@ import (
 	"go-my-blog/internal/DTO"
 	"go-my-blog/internal/model"
 	"go-my-blog/internal/repo"
+	"go-my-blog/internal/response"
+	"go-my-blog/pkg/jwt"
 	"go-my-blog/pkg/logger"
 
 	"github.com/jinzhu/copier"
@@ -104,4 +106,31 @@ func (us *UserSevice) bcryptPassword(password string) (string, error) {
 	// 返回哈希处理后的密码和错误信息
 	// 正常情况下错误为nil
 	return string(afterPassword), bcrErr
+}
+
+func (us *UserSevice) UserLogin(d *DTO.LoginDTO) (*response.LoginResponse, error) {
+	user, err := us.userRepo.FindByUserName(d.Username)
+	if err != nil {
+		return nil, errors.New("用户名或密码错误！")
+	}
+
+	if user == nil {
+		return nil, errors.New("用户名或密码错误！")
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.Password),
+		[]byte(d.Password),
+	)
+
+	if err != nil {
+		return nil, errors.New("用户名或密码错误！")
+	}
+
+	token, expiresAt, err := jwt.GenerateToken(user.ID, user.Username)
+	if err != nil {
+		return nil, errors.New("生成令牌失败！")
+	}
+
+	return &response.LoginResponse{AccessToken: token, Username: user.Username, ExpiresAt: expiresAt}, nil
 }

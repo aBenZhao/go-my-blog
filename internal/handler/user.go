@@ -54,7 +54,7 @@ func (uh *UserHandler) UserRegister(c *gin.Context) {
 	}
 
 	// 使用copier将用户实体复制到响应DTO
-	var userResponse response.UserResponseDTO
+	var userResponse response.UserResponse
 	err = copier.Copy(&userResponse, &user)
 	if err != nil {
 		logger.Error("注册业务处理失败：响应对象复制失败", zap.Error(err))
@@ -68,4 +68,25 @@ func (uh *UserHandler) UserRegister(c *gin.Context) {
 		"data": userResponse,
 	})
 
+}
+
+func (uh *UserHandler) UserLogin(c *gin.Context) {
+	var req request.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Warn("登入参数绑定失败", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误：" + err.Error()})
+		return
+	}
+	dto := DTO.LoginDTO{req.Username, req.Password}
+	loginResponse, err := uh.userService.UserLogin(&dto)
+	if err != nil {
+		logger.Error("登录失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "登录失败：" + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "登录成功",
+		"data": loginResponse,
+	})
 }

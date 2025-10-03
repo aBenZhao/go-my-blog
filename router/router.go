@@ -20,7 +20,7 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 	{
 		// 用户相关公开接口
 		public.POST("/register", modules.UserHandler.UserRegister) // 用户注册
-		//public.POST("/login", handler.UserLogin)       // 用户登录
+		public.POST("/login", modules.UserHandler.UserLogin)       // 用户登录
 
 		// 文章相关公开接口
 		//public.GET("/posts", handler.PostList)       // 文章列表（分页）

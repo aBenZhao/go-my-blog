@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"go-my-blog/internal/model"
 	"go-my-blog/pkg/logger"
 
@@ -37,4 +38,20 @@ func (ur *UserRepository) UserRegister(user *model.User) (*model.User, error) {
 	}
 	// 返回成功注册的用户信息和 nil 错误
 	return user, nil
+}
+
+func (ur *UserRepository) FindByUserName(username string) (*model.User, error) {
+	var user model.User
+	// 获取数据库连接
+	db := ur.db
+	tx := db.Where("username = ?", username).First(&user)
+	if tx.Error != nil {
+		// 用户不存在
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			logger.Warn("UserRepository.FindByUserName user not found:"+username, zap.Error(tx.Error))
+		}
+		logger.Error("UserRepository.FindByUserName db.Where is error", zap.Error(tx.Error))
+		return nil, tx.Error
+	}
+	return &user, nil
 }

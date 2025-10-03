@@ -16,7 +16,7 @@ type Modules struct {
 //
 // 返回值:
 //   - *Modules: 指向Modules结构体的指针，包含所有初始化后的模块
-func initAllModules(db *gorm.DB) *Modules {
+func InitAllModules(db *gorm.DB) *Modules {
 	return &Modules{
 		UserHandler: InitUserModule(db), // 初始化用户模块，并将返回的用户处理器赋值给Modules结构体的UserHandler字段
 	}
