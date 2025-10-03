@@ -7,6 +7,7 @@ import (
 	"go-my-blog/internal/service"
 	"go-my-blog/pkg/logger"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
@@ -23,7 +24,7 @@ func NewPostHandler(postService *service.PostService) *PostHandler {
 
 // CreatePost 是处理创建文章请求的方法
 // 它从上下文中获取用户ID，验证请求参数，并调用服务层创建文章
-func (ph PostHandler) CreatePost(c *gin.Context) {
+func (ph *PostHandler) CreatePost(c *gin.Context) {
 	// 从上下文中获取用户ID，检查是否存在
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -60,4 +61,60 @@ func (ph PostHandler) CreatePost(c *gin.Context) {
 
 	// 创建成功，返回成功响应和文章数据
 	c.JSON(http.StatusOK, gin.H{"msg": "文章创建成功", "data": postResp})
+}
+
+func (ph *PostHandler) UpdatePost(c *gin.Context) {
+	idStr := c.Param("id")
+	if idStr == "" {
+		logger.Error("文章ID不能为空")
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID不能为空"})
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		logger.Warn("用户授权失败")
+		// 如果用户ID不存在，返回未授权错误
+		c.JSON(http.StatusUnauthorized, gin.H{"msg": "Unauthorized: no user ID found in context"})
+		return
+	}
+
+	var req request.UpdatePostRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error("更新文章参数绑定失败", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "请求参数错误：" + err.Error()})
+		return
+	}
+
+	var updatePostDTO DTO.UpdatePostDTO
+	if err := copier.Copy(&updatePostDTO, &req); err != nil {
+		logger.Error("拷贝失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + err.Error()})
+		return
+	}
+	idUint, err := strconv.ParseUint(idStr, 10, 0)
+	if err != nil {
+		logger.Error("文章ID格式错误", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + err.Error()})
+		return
+	}
+	updatePostDTO.ID = uint(idUint)
+	updatePostDTO.UserID = userID.(uint)
+
+	postDTO, err := ph.PostService.UpdatePost(&updatePostDTO)
+	if err != nil {
+		logger.Error("更新文章失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "更新文章失败：" + err.Error()})
+		return
+	}
+
+	var updatePostResponse response.UpdatePostResponse
+	if err := copier.Copy(&updatePostResponse, &postDTO); err != nil {
+		logger.Error("拷贝失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"msg": "更新文章成功", "data": updatePostResponse})
+
 }

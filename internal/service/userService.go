@@ -22,6 +22,10 @@ func NewUserService(userRepo *repo.UserRepository) *UserSevice {
 	return &UserSevice{userRepo: userRepo}
 }
 
+func (us *UserSevice) GetUserRepo() *repo.UserRepository {
+	return us.userRepo
+}
+
 // UserRegister 是用户注册的方法
 // 接收一个用户注册的数据传输对象(UserRegisterDTO)作为参数
 // 返回注册后的用户数据传输对象和可能的错误

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"go-my-blog/internal/model"
 	"go-my-blog/pkg/logger"
+	"strconv"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -28,7 +29,7 @@ func (ur *UserRepository) UserRegister(user *model.User) (*model.User, error) {
 	// 获取数据库连接
 	db := ur.db
 	// 尝试在数据库中创建新用户记录
-	tx := db.Create(user)
+	tx := db.Model(&model.User{}).Create(user)
 	// 检查是否有错误发生
 	if err := tx.Error; err != nil {
 		// 记录错误日志
@@ -44,7 +45,7 @@ func (ur *UserRepository) FindByUserName(username string) (*model.User, error) {
 	var user model.User
 	// 获取数据库连接
 	db := ur.db
-	tx := db.Where("username = ?", username).First(&user)
+	tx := db.Model(&model.User{}).Where("username = ?", username).First(&user)
 	if tx.Error != nil {
 		// 用户不存在
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
@@ -54,4 +55,20 @@ func (ur *UserRepository) FindByUserName(username string) (*model.User, error) {
 		return nil, tx.Error
 	}
 	return &user, nil
+}
+
+func (ur *UserRepository) FindById(id uint) (*model.User, error) {
+	var user model.User
+	tx := ur.db.Model(&model.User{}).Where("id = ?", id).First(&user)
+	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			logger.Warn("UserRepository.FindById user not found:"+strconv.FormatUint(uint64(id), 10), zap.Error(tx.Error))
+			return nil, tx.Error
+		}
+		logger.Error("UserRepository.FindById db.Where is error", zap.Error(tx.Error))
+		return nil, tx.Error
+	}
+
+	return &user, nil
+
 }

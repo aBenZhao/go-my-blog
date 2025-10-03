@@ -2,6 +2,7 @@ package handler
 
 import (
 	"go-my-blog/internal/DTO"
+	"go-my-blog/internal/repo"
 	"go-my-blog/internal/request"
 	"go-my-blog/internal/response"
 	"go-my-blog/internal/service"
@@ -19,6 +20,10 @@ type UserHandler struct {
 
 func NewUserHandler(userService *service.UserSevice) *UserHandler {
 	return &UserHandler{userService}
+}
+
+func (uh *UserHandler) GetUserRepo() *repo.UserRepository {
+	return uh.userService.GetUserRepo()
 }
 
 // UserRegister 处理用户注册请求

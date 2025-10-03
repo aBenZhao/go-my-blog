@@ -32,8 +32,8 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 		//auth.PUT("/user/profile", handler.UpdateProfile) // 更新用户信息
 
 		// 文章相关私有接口（需登录）
-		auth.POST("/posts", modules.PostHandler.CreatePost) // 创建文章
-		//auth.PUT("/posts/:id", handler.UpdatePost)    // 更新文章
+		auth.POST("/posts", modules.PostHandler.CreatePost)    // 创建文章
+		auth.PUT("/posts/:id", modules.PostHandler.UpdatePost) // 更新文章
 		//auth.DELETE("/posts/:id", handler.DeletePost) // 删除文章
 		//auth.GET("/posts", handler.PostList)       // 文章列表（分页）
 		//auth.GET("/posts/:id", handler.PostDetail) // 文章详情
