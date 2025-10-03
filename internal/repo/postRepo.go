@@ -17,7 +17,7 @@ func NewPostRepository(db *gorm.DB) *PostRepository {
 }
 
 func (pr *PostRepository) Create(post *model.Post) (*model.Post, error) {
-	if err := pr.db.Model(&model.Post{}).Create(post).Error; err != nil {
+	if err := pr.db.Create(post).Error; err != nil {
 		logger.Error("PostRepository.Create db.Create is error", zap.Error(err))
 		return nil, err
 	}

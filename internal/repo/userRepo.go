@@ -29,7 +29,7 @@ func (ur *UserRepository) UserRegister(user *model.User) (*model.User, error) {
 	// 获取数据库连接
 	db := ur.db
 	// 尝试在数据库中创建新用户记录
-	tx := db.Model(&model.User{}).Create(user)
+	tx := db.Create(user)
 	// 检查是否有错误发生
 	if err := tx.Error; err != nil {
 		// 记录错误日志
