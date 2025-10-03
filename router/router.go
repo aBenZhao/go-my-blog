@@ -21,17 +21,10 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 		// 用户相关公开接口
 		public.POST("/register", modules.UserHandler.UserRegister) // 用户注册
 		public.POST("/login", modules.UserHandler.UserLogin)       // 用户登录
-
-		// 文章相关公开接口
-		//public.GET("/posts", handler.PostList)       // 文章列表（分页）
-		//public.GET("/posts/:id", handler.PostDetail) // 文章详情
-
-		// 评论相关公开接口
-		//public.GET("/posts/:postID/comments", handler.CommentList) // 文章的评论列表
 	}
 
 	// 3. 需要认证的路由组（需登录才能访问）
-	auth := r.Group("/api/v1")
+	auth := r.Group("/api/v2")
 	auth.Use(middleware.JWTAuth()) // JWT 认证中间件：验证 token 有效性
 	{
 		// 用户相关私有接口（需登录）
@@ -39,12 +32,15 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 		//auth.PUT("/user/profile", handler.UpdateProfile) // 更新用户信息
 
 		// 文章相关私有接口（需登录）
-		//auth.POST("/posts", handler.CreatePost)       // 创建文章
+		auth.POST("/posts", modules.PostHandler.CreatePost) // 创建文章
 		//auth.PUT("/posts/:id", handler.UpdatePost)    // 更新文章
 		//auth.DELETE("/posts/:id", handler.DeletePost) // 删除文章
+		//auth.GET("/posts", handler.PostList)       // 文章列表（分页）
+		//auth.GET("/posts/:id", handler.PostDetail) // 文章详情
 
 		// 评论相关私有接口（需登录）
 		//auth.POST("/posts/:postID/comments", handler.CreateComment) // 发布评论
+		//auth.GET("/posts/:postID/comments", handler.CommentList) // 文章的评论列表
 		//auth.DELETE("/comments/:id", handler.DeleteComment)         // 删除自己的评论
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 type Modules struct {
 	UserHandler *handler.UserHandler
+	PostHandler *handler.PostHandler
 }
 
 // initAllModules 初始化所有模块的函数
@@ -19,5 +20,6 @@ type Modules struct {
 func InitAllModules(db *gorm.DB) *Modules {
 	return &Modules{
 		UserHandler: InitUserModule(db), // 初始化用户模块，并将返回的用户处理器赋值给Modules结构体的UserHandler字段
+		PostHandler: InitPostModule(db), // 初始化文章模块，并将返回的文章处理器赋值给Modules结构体的PostHandler字段
 	}
 }

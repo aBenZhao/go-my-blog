@@ -17,17 +17,25 @@ type CustomClaims struct {
 }
 
 // GenerateToken 生成 JWT Token
+/**
+ * 生成JWT令牌函数
+ * @param userID 用户ID
+ * @param username 用户名
+ * @return string 生成的JWT令牌
+ * @return int64 过期时间戳
+ * @return error 错误信息
+ */
 func GenerateToken(userID uint, username string) (string, int64, error) {
 	// 1. 从配置中获取 JWT 密钥和过期时间（建议在 config/app.yaml 中配置）
 	jwtConf := config.Conf.JWT
-	secret := []byte(jwtConf.Secret) // 密钥（生产环境需复杂且保密）
-	expireTime := time.Now().Add(time.Duration(jwtConf.ExpireHour) * time.Hour)
-	expireAt := expireTime.Unix()
+	secret := []byte(jwtConf.Secret)                                            // 密钥（生产环境需复杂且保密）
+	expireTime := time.Now().Add(time.Duration(jwtConf.ExpireHour) * time.Hour) // 计算过期时间
+	expireAt := expireTime.Unix()                                               // 获取过期时间戳
 
 	// 2. 设置 Claims（包含用户 ID 和过期时间）
 	claims := CustomClaims{
-		UserID:   userID,
-		Username: username,
+		UserID:   userID,   // 用户ID
+		Username: username, // 用户名
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expireTime), // 过期时间
 			IssuedAt:  jwt.NewNumericDate(time.Now()), // 签发时间
@@ -36,9 +44,9 @@ func GenerateToken(userID uint, username string) (string, int64, error) {
 	}
 
 	// 3. 使用 HS256 算法签名生成 Token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(secret)
-	return tokenString, expireAt, err
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims) // 创建新的JWT令牌
+	tokenString, err := token.SignedString(secret)             // 使用密钥签名生成令牌字符串
+	return tokenString, expireAt, err                          // 返回令牌字符串、过期时间戳和可能的错误
 }
 
 // VerifyToken 验证 Token 并返回用户 ID

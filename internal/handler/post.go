@@ -1,0 +1,63 @@
+package handler
+
+import (
+	"go-my-blog/internal/DTO"
+	"go-my-blog/internal/request"
+	"go-my-blog/internal/response"
+	"go-my-blog/internal/service"
+	"go-my-blog/pkg/logger"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
+	"go.uber.org/zap"
+)
+
+type PostHandler struct {
+	PostService *service.PostService
+}
+
+func NewPostHandler(postService *service.PostService) *PostHandler {
+	return &PostHandler{postService}
+}
+
+// CreatePost 是处理创建文章请求的方法
+// 它从上下文中获取用户ID，验证请求参数，并调用服务层创建文章
+func (ph PostHandler) CreatePost(c *gin.Context) {
+	// 从上下文中获取用户ID，检查是否存在
+	userID, exists := c.Get("userID")
+	if !exists {
+		logger.Warn("用户授权失败")
+		// 如果用户ID不存在，返回未授权错误
+		c.JSON(http.StatusUnauthorized, gin.H{"msg": "Unauthorized: no user ID found in context"})
+		return
+	}
+
+	// 声明创建文章的请求结构体，并绑定请求体数据
+	var req request.CreatePostRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		// 如果参数绑定失败，返回参数错误信息
+		logger.Error("创建文字参数绑定失败", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误：" + err.Error()})
+		return
+	}
+
+	// 调用PostService的CreatePost方法创建文章，传入用户ID和请求参数
+	createPostDTO := DTO.CreatePostDTO{Title: req.Title, Content: req.Content}
+	postRespDTO, err := ph.PostService.CreatePost(userID.(uint), &createPostDTO)
+	if err != nil {
+		logger.Error("创建文章失败", zap.Error(err))
+		// 如果创建失败，返回服务器内部错误信息
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "创建文章失败：" + err.Error()})
+		return
+	}
+
+	var postResp response.CreatePostResponse
+	if err = copier.Copy(&postResp, &postRespDTO); err != nil {
+		logger.Error("拷贝失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "注册失败：" + err.Error()})
+	}
+
+	// 创建成功，返回成功响应和文章数据
+	c.JSON(http.StatusOK, gin.H{"msg": "文章创建成功", "data": postResp})
+}

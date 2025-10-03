@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"go-my-blog/pkg/jwt" // 引入上面实现的 JWT 工具类
+
+	"github.com/gin-gonic/gin"
 )
 
 // JWTAuth JWT 认证中间件：验证请求中的 Token 有效性，通过后将用户 ID 存入上下文
@@ -34,7 +35,7 @@ func JWTAuth() gin.HandlerFunc {
 		}
 
 		// 3. 验证 Token 有效性并提取用户 ID
-		userID, err := jwt.VerifyToken(parts[1])
+		user, err := jwt.VerifyToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": 401,
@@ -45,7 +46,7 @@ func JWTAuth() gin.HandlerFunc {
 		}
 
 		// 4. 将用户 ID 存入上下文，供后续 handler 使用（如创建文章时记录作者 ID）
-		c.Set("userID", userID)
+		c.Set("userID", user.UserID)
 
 		// 5. 继续执行后续中间件或 handler
 		c.Next()
