@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"go.uber.org/zap"
 )
@@ -38,9 +39,15 @@ func (ph *PostHandler) CreatePost(c *gin.Context) {
 	var req request.CreatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// 如果参数绑定失败，返回参数错误信息
-		logger.Error("创建文字参数绑定失败", zap.Error(err))
+		logger.Error("创建参数绑定失败", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误：" + err.Error()})
 		return
+	}
+
+	// 与CreatePostRequest中的validate标签配合使用，需要在此显示校验
+	if err := validator.New().Struct(req); err != nil {
+		logger.Error("创建参数校验失败", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误：" + err.Error()})
 	}
 
 	// 调用PostService的CreatePost方法创建文章，传入用户ID和请求参数
@@ -148,4 +155,47 @@ func (ph *PostHandler) DeletePost(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"msg": "删除文章失败：" + err.Error()})
 	}
 	context.JSON(http.StatusOK, gin.H{"msg": "删除文章成功"})
+}
+
+func (ph *PostHandler) PostList(context *gin.Context) {
+	var req request.PostListRequest
+	if err := context.ShouldBindQuery(&req); err != nil {
+		logger.Error("获取文章列表参数绑定失败", zap.Error(err))
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "请求参数错误：" + err.Error()})
+		return
+	}
+	req.SetDefault()
+
+	userID, exists := context.Get("userID")
+	if !exists {
+		logger.Warn("用户授权失败")
+		// 如果用户ID不存在，返回未授权错误
+		context.JSON(http.StatusUnauthorized, gin.H{"msg": "Unauthorized: no user ID found in context"})
+		return
+	}
+
+	var listPostDTO DTO.ListPostDTO
+	copyErr := copier.Copy(&listPostDTO, &req)
+	if copyErr != nil {
+		logger.Error("拷贝失败", zap.Error(copyErr))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + copyErr.Error()})
+		return
+	}
+	listPostDTO.UserID = userID.(uint)
+
+	postDTOList, err := ph.PostService.PostList(&listPostDTO)
+	if err != nil {
+		logger.Error("获取文章列表失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取文章列表失败：" + err.Error()})
+		return
+	}
+
+	var postListResponse response.PostListResponse
+	if err := copier.Copy(&postListResponse, &postDTOList); err != nil {
+		logger.Error("拷贝失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"msg": "获取文章列表成功", "data": postListResponse})
 }

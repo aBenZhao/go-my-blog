@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"go-my-blog/internal/DTO"
 	"go-my-blog/internal/model"
 	"go-my-blog/pkg/logger"
 
@@ -84,4 +85,26 @@ func (pr *PostRepository) Delete(id uint) error {
 	// 然后调用Delete方法删除该记录
 	// 如果删除过程中出现错误，则返回该错误
 	return pr.db.Model(&model.Post{}).Where("id = ?", id).Delete(&model.Post{}).Error
+}
+
+func (pr *PostRepository) ListPosts(dto *DTO.ListPostDTO) (*[]model.Post, int64, error) {
+	tx := pr.db.Model(&model.Post{})
+
+	if dto.Keyword != "" {
+		tx = tx.Where("title LIKE ? OR content LIKE ?", "%"+dto.Keyword+"%", "%"+dto.Keyword+"%")
+	}
+
+	var total int64
+	if err := tx.Count(&total).Error; err != nil {
+		logger.Error("PostRepository.ListPosts db.Count is error", zap.Error(err))
+		return nil, 0, err
+	}
+
+	var posts []model.Post
+	offset := (dto.PageNum - 1) * dto.PageSize
+	if err := tx.Offset(offset).Limit(dto.PageSize).Find(&posts).Error; err != nil {
+		logger.Error("PostRepository.ListPosts db.Find is error", zap.Error(err))
+		return nil, 0, err
+	}
+	return &posts, total, nil
 }

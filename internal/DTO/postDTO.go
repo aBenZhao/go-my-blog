@@ -11,3 +11,23 @@ type UpdatePostDTO struct {
 	Content string `json:"content"`
 	UserID  uint   `json:"user_id"`
 }
+
+type ListPostDTO struct {
+	PageNum  int    `form:"page_num"`
+	PageSize int    `form:"page_size"`
+	Keyword  string `form:"keyword"`
+	UserID   uint   `json:"user_id"`
+}
+
+type PostDTO struct {
+	ID      uint   `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+type PostListDTO struct {
+	Posts    []PostDTO `json:"posts"`
+	Total    int64     `json:"total"`
+	PageNum  int       `form:"page_num"`
+	PageSize int       `form:"page_size"`
+}

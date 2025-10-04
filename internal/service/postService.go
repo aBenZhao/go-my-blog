@@ -123,3 +123,24 @@ func (ps *PostService) DeletePost(id uint, userId uint) error {
 	// 调用仓储层执行删除操作
 	return ps.PostRepo.Delete(id)
 }
+
+func (ps *PostService) PostList(listPostDTO *DTO.ListPostDTO) (*DTO.PostListDTO, error) {
+	posts, total, err := ps.PostRepo.ListPosts(listPostDTO)
+	if err != nil {
+		logger.Error("PostService.PostList PostRepo.ListPosts is error!", zap.Error(err))
+		return nil, err
+	}
+
+	var postDTO []DTO.PostDTO
+	if err := copier.Copy(&postDTO, &posts); err != nil {
+		logger.Error("PostService.PostList copier.Copy is error!", zap.Error(err))
+		return nil, err
+	}
+	var postListDTO DTO.PostListDTO
+	postListDTO.Posts = postDTO
+	postListDTO.Total = total
+	postListDTO.PageNum = listPostDTO.PageNum
+	postListDTO.PageSize = listPostDTO.PageSize
+	return &postListDTO, nil
+
+}
