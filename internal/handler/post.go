@@ -118,3 +118,34 @@ func (ph *PostHandler) UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "更新文章成功", "data": updatePostResponse})
 
 }
+
+func (ph *PostHandler) DeletePost(context *gin.Context) {
+	idStr := context.Param("id")
+	if idStr == "" {
+		logger.Error("文章ID不能为空")
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID不能为空"})
+		return
+	}
+
+	userID, exists := context.Get("userID")
+	if !exists {
+		logger.Warn("用户授权失败")
+		// 如果用户ID不存在，返回未授权错误
+		context.JSON(http.StatusUnauthorized, gin.H{"msg": "Unauthorized: no user ID found in context"})
+		return
+	}
+
+	idUint, err := strconv.ParseUint(idStr, 10, 0)
+	if err != nil {
+		logger.Error("文章ID格式错误", zap.Error(err))
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + err.Error()})
+		return
+	}
+
+	err = ph.PostService.DeletePost(uint(idUint), userID.(uint))
+	if err != nil {
+		logger.Error("删除文章失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "删除文章失败：" + err.Error()})
+	}
+	context.JSON(http.StatusOK, gin.H{"msg": "删除文章成功"})
+}

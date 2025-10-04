@@ -90,3 +90,36 @@ func (ps *PostService) UpdatePost(updatePostDTO *DTO.UpdatePostDTO) (*DTO.Update
 
 	return &updateAffectedPostDTO, nil
 }
+
+// DeletePost 删除文章的方法
+// 参数:
+//
+//	id: 要删除的文章ID
+//	userId: 请求删除文章的用户ID
+//
+// 返回值:
+//
+//	error: 操作过程中遇到的错误，如果删除成功则返回nil
+func (ps *PostService) DeletePost(id uint, userId uint) error {
+	// 根据ID从数据库中获取文章信息
+	post, err := ps.PostRepo.GetById(id)
+	if err != nil {
+		// 检查错误是否为"未找到行"的错误
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error("文章不存在", zap.Error(err))
+			return err
+		}
+		// 其他数据库错误处理
+		logger.Error("文章查询失败", zap.Error(err))
+		return err
+	}
+
+	// 验证请求删除的用户是否为文章作者
+	if userId != post.UserID {
+		logger.Error("登录用户非文章作者，不允许删除文章")
+		return errors.New("登录用户非文章作者，不允许删除文章")
+	}
+
+	// 调用仓储层执行删除操作
+	return ps.PostRepo.Delete(id)
+}
