@@ -41,6 +41,6 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 		// 评论相关私有接口（需登录）
 		//auth.POST("/posts/:postID/comments", handler.CreateComment) // 发布评论
 		//auth.GET("/posts/:postID/comments", handler.CommentList) // 文章的评论列表
-		//auth.DELETE("/comments/:id", handler.DeleteComment)         // 删除自己的评论
+		auth.DELETE("/comments/:id", modules.CommentHandler.DeleteComment) // 删除自己的评论
 	}
 }

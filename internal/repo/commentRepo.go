@@ -39,3 +39,31 @@ func (cr CommentRepository) ListComments(dto DTO.ListCommentDTO) (*[]model.Comme
 
 	return &comments, total, nil
 }
+
+func (cr CommentRepository) DeleteByPostId(postId uint) error {
+	tx := cr.db.Model(&model.Comment{}).Where("post_id = ?", postId).Delete(&model.Comment{})
+	if tx.Error != nil {
+		logger.Error("CommentRepository.DeleteByPostId is error", zap.Error(tx.Error))
+		return tx.Error
+	}
+	return nil
+}
+
+func (cr CommentRepository) GetById(id uint) (*model.Comment, error) {
+	var comment model.Comment
+	tx := cr.db.Model(&model.Comment{}).Where("id = ?", id).First(&comment)
+	if tx.Error != nil {
+		logger.Error("CommentRepository.GetById is error", zap.Error(tx.Error))
+		return nil, tx.Error
+	}
+	return &comment, nil
+}
+
+func (cr CommentRepository) DeleteById(id uint) error {
+	tx := cr.db.Model(&model.Comment{}).Where("id = ?", id).Delete(&model.Comment{})
+	if tx.Error != nil {
+		logger.Error("CommentRepository.DeleteById is error", zap.Error(tx.Error))
+		return tx.Error
+	}
+	return nil
+}

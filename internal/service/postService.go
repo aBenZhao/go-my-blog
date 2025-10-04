@@ -123,7 +123,19 @@ func (ps *PostService) DeletePost(id uint, userId uint) error {
 	}
 
 	// 调用仓储层执行删除操作
-	return ps.PostRepo.Delete(id)
+	err = ps.PostRepo.Delete(id)
+
+	if err != nil {
+		logger.Error("文章删除失败", zap.Error(err))
+		return err
+	}
+
+	err = ps.CommentRepo.DeleteByPostId(post.ID)
+	if err != nil {
+		logger.Error("文章删除失败", zap.Error(err))
+		return err
+	}
+	return nil
 }
 
 func (ps *PostService) PostList(listPostDTO *DTO.ListPostDTO) (*DTO.PostListDTO, error) {
