@@ -12,10 +12,9 @@ type UpdatePostResponse struct {
 }
 
 type PostResponse struct {
-	ID       uint   `json:"id"`
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	Username string `json:"username"`
+	ID      uint   `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
 
 type PostListResponse struct {
