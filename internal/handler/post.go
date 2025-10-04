@@ -199,3 +199,33 @@ func (ph *PostHandler) PostList(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"msg": "获取文章列表成功", "data": postListResponse})
 }
+
+func (ph *PostHandler) PostDetail(context *gin.Context) {
+	idStr := context.Param("id")
+	if idStr == "" {
+		logger.Error("文章ID不能为空")
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID不能为空"})
+		return
+	}
+
+	parseUint, parseErr := strconv.ParseUint(idStr, 10, 0)
+	if parseErr != nil {
+		logger.Error("文章ID格式错误", zap.Error(parseErr))
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + parseErr.Error()})
+	}
+
+	postDetailDTO, err := ph.PostService.PostDetail(parseUint)
+	if err != nil {
+		logger.Error("获取文章详情失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取文章详情失败：" + err.Error()})
+		return
+	}
+
+	var postResp response.PostDetailResponse
+	if err := copier.Copy(&postResp, &postDetailDTO); err != nil {
+		logger.Error("拷贝失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + err.Error()})
+	}
+
+	context.JSON(http.StatusOK, gin.H{"msg": "获取文章详情成功", "data": postResp})
+}

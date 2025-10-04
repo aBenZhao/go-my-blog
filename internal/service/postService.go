@@ -14,14 +14,16 @@ import (
 )
 
 type PostService struct {
-	PostRepo *repo.PostRepository
-	UserRepo *repo.UserRepository
+	PostRepo    *repo.PostRepository
+	UserRepo    *repo.UserRepository
+	CommentRepo *repo.CommentRepository
 }
 
-func NewPostService(postRepo *repo.PostRepository, userRepo *repo.UserRepository) *PostService {
+func NewPostService(postRepo *repo.PostRepository, userRepo *repo.UserRepository, commentRepo *repo.CommentRepository) *PostService {
 	return &PostService{
-		PostRepo: postRepo,
-		UserRepo: userRepo,
+		PostRepo:    postRepo,
+		UserRepo:    userRepo,
+		CommentRepo: commentRepo,
 	}
 }
 
@@ -142,5 +144,53 @@ func (ps *PostService) PostList(listPostDTO *DTO.ListPostDTO) (*DTO.PostListDTO,
 	postListDTO.PageNum = listPostDTO.PageNum
 	postListDTO.PageSize = listPostDTO.PageSize
 	return &postListDTO, nil
+
+}
+
+func (ps *PostService) PostDetail(postId uint64) (*DTO.PostDetailDTO, error) {
+	post, err := ps.PostRepo.GetById(uint(postId))
+	if err != nil {
+		logger.Error("PostService.PostDetail PostRepo.GetById is error!", zap.Error(err))
+		return nil, err
+	}
+
+	user, err := ps.UserRepo.FindById(post.UserID)
+	if err != nil {
+		logger.Error("PostService.PostDetail UserRepo.FindById is error!", zap.Error(err))
+		return nil, err
+	}
+
+	var listCommentDTO DTO.ListCommentDTO
+	listCommentDTO.PostId = postId
+	listCommentDTO.PageNum = 1
+	listCommentDTO.PageSize = 10
+	comments, _, err := ps.CommentRepo.ListComments(listCommentDTO)
+	if err != nil {
+		logger.Error("PostService.PostDetail CommentRepo.ListComments is error!", zap.Error(err))
+		return nil, err
+	}
+
+	var commentDetailsDTO []DTO.CommentDetailDTO
+	for _, comment := range *comments {
+		var commentDetailDTO DTO.CommentDetailDTO
+		commentDetailDTO.ID = comment.ID
+		commentDetailDTO.Content = comment.Content
+		commentDetailDTO.UserID = comment.UserID
+		commentDetailDTO.CreatedAt = comment.CreatedAt.Format("2006-01-02 15:04:05")
+		commentDetailDTO.UpdatedAt = comment.UpdatedAt.Format("2006-01-02 15:04:05")
+		commentDetailsDTO = append(commentDetailsDTO, commentDetailDTO)
+	}
+
+	var postDetailDTO DTO.PostDetailDTO
+	postDetailDTO.ID = post.ID
+	postDetailDTO.Title = post.Title
+	postDetailDTO.Content = post.Content
+	postDetailDTO.CreatedAt = post.CreatedAt.Format("2006-01-02 15:04:05")
+	postDetailDTO.UpdatedAt = post.UpdatedAt.Format("2006-01-02 15:04:05")
+	postDetailDTO.UserID = post.UserID
+	postDetailDTO.Username = user.Username
+	postDetailDTO.Comments = commentDetailsDTO
+
+	return &postDetailDTO, nil
 
 }
