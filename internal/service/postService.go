@@ -27,6 +27,10 @@ func NewPostService(postRepo *repo.PostRepository, userRepo *repo.UserRepository
 	}
 }
 
+func (ps *PostService) GetPostRepo() *repo.PostRepository {
+	return ps.PostRepo
+}
+
 func (ps *PostService) CreatePost(userID uint, createPostDTO *DTO.CreatePostDTO) (*DTO.CreatePostDTO, error) {
 	var post model.Post
 	if err := copier.Copy(&post, createPostDTO); err != nil {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"go-my-blog/internal/DTO"
+	"go-my-blog/internal/repo"
 	"go-my-blog/internal/request"
 	"go-my-blog/internal/response"
 	"go-my-blog/internal/service"
@@ -16,11 +17,15 @@ import (
 )
 
 type PostHandler struct {
-	PostService *service.PostService
+	postService *service.PostService
 }
 
 func NewPostHandler(postService *service.PostService) *PostHandler {
 	return &PostHandler{postService}
+}
+
+func (h PostHandler) GetPostRepo() *repo.PostRepository {
+	return h.postService.GetPostRepo()
 }
 
 // CreatePost 是处理创建文章请求的方法
@@ -52,7 +57,7 @@ func (ph *PostHandler) CreatePost(c *gin.Context) {
 
 	// 调用PostService的CreatePost方法创建文章，传入用户ID和请求参数
 	createPostDTO := DTO.CreatePostDTO{Title: req.Title, Content: req.Content}
-	postRespDTO, err := ph.PostService.CreatePost(userID.(uint), &createPostDTO)
+	postRespDTO, err := ph.postService.CreatePost(userID.(uint), &createPostDTO)
 	if err != nil {
 		logger.Error("创建文章失败", zap.Error(err))
 		// 如果创建失败，返回服务器内部错误信息
@@ -63,7 +68,7 @@ func (ph *PostHandler) CreatePost(c *gin.Context) {
 	var postResp response.CreatePostResponse
 	if err = copier.Copy(&postResp, &postRespDTO); err != nil {
 		logger.Error("拷贝失败", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"msg": "注册失败：" + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "拷贝失败：" + err.Error()})
 	}
 
 	// 创建成功，返回成功响应和文章数据
@@ -108,7 +113,7 @@ func (ph *PostHandler) UpdatePost(c *gin.Context) {
 	updatePostDTO.ID = uint(idUint)
 	updatePostDTO.UserID = userID.(uint)
 
-	postDTO, err := ph.PostService.UpdatePost(&updatePostDTO)
+	postDTO, err := ph.postService.UpdatePost(&updatePostDTO)
 	if err != nil {
 		logger.Error("更新文章失败", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"msg": "更新文章失败：" + err.Error()})
@@ -149,7 +154,7 @@ func (ph *PostHandler) DeletePost(context *gin.Context) {
 		return
 	}
 
-	err = ph.PostService.DeletePost(uint(idUint), userID.(uint))
+	err = ph.postService.DeletePost(uint(idUint), userID.(uint))
 	if err != nil {
 		logger.Error("删除文章失败", zap.Error(err))
 		context.JSON(http.StatusInternalServerError, gin.H{"msg": "删除文章失败：" + err.Error()})
@@ -183,7 +188,7 @@ func (ph *PostHandler) PostList(context *gin.Context) {
 	}
 	listPostDTO.UserID = userID.(uint)
 
-	postDTOList, err := ph.PostService.PostList(&listPostDTO)
+	postDTOList, err := ph.postService.PostList(&listPostDTO)
 	if err != nil {
 		logger.Error("获取文章列表失败", zap.Error(err))
 		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取文章列表失败：" + err.Error()})
@@ -214,7 +219,7 @@ func (ph *PostHandler) PostDetail(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + parseErr.Error()})
 	}
 
-	postDetailDTO, err := ph.PostService.PostDetail(parseUint)
+	postDetailDTO, err := ph.postService.PostDetail(parseUint)
 	if err != nil {
 		logger.Error("获取文章详情失败", zap.Error(err))
 		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取文章详情失败：" + err.Error()})

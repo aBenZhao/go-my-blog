@@ -20,7 +20,7 @@ func InitCommentModule(db *gorm.DB) *handler.CommentHandler {
 	repository := repo.NewCommentRepository(db)
 
 	// 创建评论服务实例，用于处理评论相关的业务逻辑
-	commentService := service.NewCommentService(repository)
+	commentService := service.NewCommentService(repository, nil, nil)
 
 	// 创建评论处理器实例，用于处理HTTP请求和响应
 	commentHandler := handler.NewCommentHandler(commentService)

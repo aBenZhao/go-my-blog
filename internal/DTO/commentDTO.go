@@ -16,3 +16,8 @@ type ListCommentDTO struct {
 	UserID   uint   `json:"user_id"`
 	PostId   uint64 `json:"post_id"`
 }
+
+type CreateCommentDTO struct {
+	Content string `json:"content"`
+	PostID  uint   `json:"post_id"`
+}

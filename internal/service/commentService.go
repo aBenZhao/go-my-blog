@@ -3,6 +3,8 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"go-my-blog/internal/DTO"
+	"go-my-blog/internal/model"
 	"go-my-blog/internal/repo"
 	"go-my-blog/pkg/logger"
 
@@ -11,15 +13,19 @@ import (
 
 type CommentService struct {
 	commentRepo *repo.CommentRepository
+	userRepo    *repo.UserRepository
+	postRepo    *repo.PostRepository
 }
 
 func (s CommentService) GetCommentRepo() *repo.CommentRepository {
 	return s.commentRepo
 }
 
-func NewCommentService(commentRepo *repo.CommentRepository) *CommentService {
+func NewCommentService(commentRepo *repo.CommentRepository, userRepo *repo.UserRepository, postRepo *repo.PostRepository) *CommentService {
 	return &CommentService{
 		commentRepo: commentRepo,
+		userRepo:    userRepo,
+		postRepo:    postRepo,
 	}
 }
 
@@ -49,4 +55,23 @@ func (cs CommentService) DeleteComment(commentId uint, userId uint) error {
 		return err
 	}
 	return nil
+}
+
+func (cs CommentService) CreateComment(userID uint, d *DTO.CreateCommentDTO) (*DTO.CreateCommentDTO, error) {
+	_, err := cs.postRepo.GetById(d.PostID)
+	if err != nil {
+		logger.Error("文章不存在", zap.Error(err))
+		return nil, err
+	}
+	var comment = &model.Comment{PostID: d.PostID, UserID: userID, Content: d.Content}
+	commentResult, err := cs.commentRepo.Create(comment)
+	if err != nil {
+		logger.Error("评论创建失败", zap.Error(err))
+		return nil, err
+	}
+
+	var resultDTO = &DTO.CreateCommentDTO{PostID: commentResult.PostID, Content: commentResult.Content}
+
+	return resultDTO, nil
+
 }

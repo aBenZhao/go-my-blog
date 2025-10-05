@@ -38,12 +38,12 @@ func main() {
 	db.Init()
 
 	// 4. 初始化所有modules
-	modules := bootstrap.InitAllModules(db.DB)
+	container := bootstrap.InitAllModules(db.DB)
 
 	// 5. 初始化 Gin 引擎和路由
 	logger.Info("开始初始化路由")
 	r := gin.Default()
-	router.InitRouter(r, modules)
+	router.InitRouter(r, container)
 
 	// 6. 启动服务（依赖配置中的端口参数）
 	port := config.Conf.Server.Port

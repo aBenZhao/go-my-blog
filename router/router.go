@@ -9,7 +9,7 @@ import (
 )
 
 // InitRouter 初始化路由：将所有 API 注册到 Gin 引擎
-func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
+func InitRouter(r *gin.Engine, container *bootstrap.Container) {
 	// 1. 全局中间件：所有路由都会经过的中间件（如日志、跨域）
 	r.Use(middleware.GinLogger())                                         // 自定义日志中间件（记录请求日志）
 	r.Use(middleware.GinRecovery(priority_config.PriorityConf.Gin.Debug)) // 异常恢复中间件（避免服务因 panic 崩溃）
@@ -19,8 +19,8 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 	public := r.Group("/api/v1")
 	{
 		// 用户相关公开接口
-		public.POST("/register", modules.UserHandler.UserRegister) // 用户注册
-		public.POST("/login", modules.UserHandler.UserLogin)       // 用户登录
+		public.POST("/register", container.UserHandler.UserRegister) // 用户注册
+		public.POST("/login", container.UserHandler.UserLogin)       // 用户登录
 	}
 
 	// 3. 需要认证的路由组（需登录才能访问）
@@ -32,15 +32,15 @@ func InitRouter(r *gin.Engine, modules *bootstrap.Modules) {
 		//auth.PUT("/user/profile", handler.UpdateProfile) // 更新用户信息
 
 		// 文章相关私有接口（需登录）
-		auth.POST("/posts", modules.PostHandler.CreatePost)       // 创建文章
-		auth.PUT("/posts/:id", modules.PostHandler.UpdatePost)    // 更新文章
-		auth.DELETE("/posts/:id", modules.PostHandler.DeletePost) // 删除文章
-		auth.GET("/posts", modules.PostHandler.PostList)          // 文章列表（分页）
-		auth.GET("/posts/:id", modules.PostHandler.PostDetail)    // 文章详情
+		auth.POST("/posts", container.PostHandler.CreatePost)       // 创建文章
+		auth.PUT("/posts/:id", container.PostHandler.UpdatePost)    // 更新文章
+		auth.DELETE("/posts/:id", container.PostHandler.DeletePost) // 删除文章
+		auth.GET("/posts", container.PostHandler.PostList)          // 文章列表（分页）
+		auth.GET("/posts/:id", container.PostHandler.PostDetail)    // 文章详情
 
 		// 评论相关私有接口（需登录）
-		//auth.POST("/posts/:postID/comments", handler.CreateComment) // 发布评论
+		auth.POST("/posts/:postID/comments", container.CommentHandler.CreateComment) // 发布评论
 		//auth.GET("/posts/:postID/comments", handler.CommentList) // 文章的评论列表
-		auth.DELETE("/comments/:id", modules.CommentHandler.DeleteComment) // 删除自己的评论
+		auth.DELETE("/comments/:id", container.CommentHandler.DeleteComment) // 删除自己的评论
 	}
 }

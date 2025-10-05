@@ -67,3 +67,11 @@ func (cr CommentRepository) DeleteById(id uint) error {
 	}
 	return nil
 }
+
+func (cr CommentRepository) Create(comment *model.Comment) (*model.Comment, error) {
+	if err := cr.db.Create(comment).Error; err != nil {
+		logger.Error("CommentRepository.Create is error", zap.Error(err))
+		return nil, err
+	}
+	return comment, nil
+}
