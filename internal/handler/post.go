@@ -219,7 +219,7 @@ func (ph *PostHandler) PostDetail(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + parseErr.Error()})
 	}
 
-	postDetailDTO, err := ph.postService.PostDetail(parseUint)
+	postDetailDTO, err := ph.postService.PostDetail(uint(parseUint))
 	if err != nil {
 		logger.Error("获取文章详情失败", zap.Error(err))
 		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取文章详情失败：" + err.Error()})

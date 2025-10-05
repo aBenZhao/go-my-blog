@@ -35,6 +35,5 @@ func PriorityConfInit() {
 
 	if err := viper.Unmarshal(PriorityConf); err != nil {
 		log.Fatal("解析数据库配置到结构体失败", zap.Error(err))
-		//logger.Fatal("解析数据库配置到结构体失败", zap.Error(err))
 	}
 }

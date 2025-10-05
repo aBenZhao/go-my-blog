@@ -27,10 +27,6 @@ func InitRouter(r *gin.Engine, container *bootstrap.Container) {
 	auth := r.Group("/api/v2")
 	auth.Use(middleware.JWTAuth()) // JWT 认证中间件：验证 token 有效性
 	{
-		// 用户相关私有接口（需登录）
-		//auth.GET("/user/profile", handler.UserProfile)   // 获取当前用户信息
-		//auth.PUT("/user/profile", handler.UpdateProfile) // 更新用户信息
-
 		// 文章相关私有接口（需登录）
 		auth.POST("/posts", container.PostHandler.CreatePost)       // 创建文章
 		auth.PUT("/posts/:id", container.PostHandler.UpdatePost)    // 更新文章
@@ -40,7 +36,7 @@ func InitRouter(r *gin.Engine, container *bootstrap.Container) {
 
 		// 评论相关私有接口（需登录）
 		auth.POST("/posts/:postID/comments", container.CommentHandler.CreateComment) // 发布评论
-		//auth.GET("/posts/:postID/comments", handler.CommentList) // 文章的评论列表
-		auth.DELETE("/comments/:id", container.CommentHandler.DeleteComment) // 删除自己的评论
+		auth.GET("/comments/:postID", container.CommentHandler.CommentList)          // 文章的评论列表
+		auth.DELETE("/comments/:id", container.CommentHandler.DeleteComment)         // 删除自己的评论
 	}
 }

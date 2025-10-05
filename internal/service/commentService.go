@@ -75,3 +75,30 @@ func (cs CommentService) CreateComment(userID uint, d *DTO.CreateCommentDTO) (*D
 	return resultDTO, nil
 
 }
+
+func (cs CommentService) CommentList(postId uint) (*[]DTO.CommentDetailDTO, error) {
+	_, err := cs.postRepo.GetById(postId)
+	if err != nil {
+		logger.Error("文章不存在", zap.Error(err))
+		return nil, err
+	}
+
+	comments, _, err := cs.commentRepo.ListComments(DTO.ListCommentDTO{PostId: postId})
+	if err != nil {
+		logger.Error("评论列表查询失败", zap.Error(err))
+		return nil, err
+	}
+
+	var commentDetailsDTO []DTO.CommentDetailDTO
+	for _, comment := range *comments {
+		var commentDetailDTO DTO.CommentDetailDTO
+		commentDetailDTO.ID = comment.ID
+		commentDetailDTO.Content = comment.Content
+		commentDetailDTO.UserID = comment.UserID
+		commentDetailDTO.CreatedAt = comment.CreatedAt.Format("2006-01-02 15:04:05")
+		commentDetailDTO.UpdatedAt = comment.UpdatedAt.Format("2006-01-02 15:04:05")
+		commentDetailsDTO = append(commentDetailsDTO, commentDetailDTO)
+	}
+
+	return &commentDetailsDTO, nil
+}

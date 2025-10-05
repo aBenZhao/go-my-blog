@@ -163,8 +163,8 @@ func (ps *PostService) PostList(listPostDTO *DTO.ListPostDTO) (*DTO.PostListDTO,
 
 }
 
-func (ps *PostService) PostDetail(postId uint64) (*DTO.PostDetailDTO, error) {
-	post, err := ps.PostRepo.GetById(uint(postId))
+func (ps *PostService) PostDetail(postId uint) (*DTO.PostDetailDTO, error) {
+	post, err := ps.PostRepo.GetById(postId)
 	if err != nil {
 		logger.Error("PostService.PostDetail PostRepo.GetById is error!", zap.Error(err))
 		return nil, err

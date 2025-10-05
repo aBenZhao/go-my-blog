@@ -14,7 +14,7 @@ type ListCommentDTO struct {
 	PageSize int    `form:"page_size"`
 	Keyword  string `form:"keyword"`
 	UserID   uint   `json:"user_id"`
-	PostId   uint64 `json:"post_id"`
+	PostId   uint   `json:"post_id"`
 }
 
 type CreateCommentDTO struct {

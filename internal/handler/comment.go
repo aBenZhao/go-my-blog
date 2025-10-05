@@ -111,3 +111,25 @@ func (ch CommentHandler) CreateComment(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"msg": "评论创建成功", "data": commentResp})
 }
+
+func (ch CommentHandler) CommentList(context *gin.Context) {
+	postIDStr := context.Param("postID")
+	if postIDStr == "" {
+		logger.Error("文章ID不能为空")
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID不能为空"})
+		return
+	}
+	postID, err := strconv.ParseUint(postIDStr, 10, 0)
+	if err != nil {
+		logger.Error("文章ID格式错误", zap.Error(err))
+		context.JSON(http.StatusBadRequest, gin.H{"msg": "文章ID格式错误：" + err.Error()})
+		return
+	}
+
+	comments, err := ch.commentService.CommentList(uint(postID))
+	if err != nil {
+		logger.Error("获取评论列表失败", zap.Error(err))
+		context.JSON(http.StatusInternalServerError, gin.H{"msg": "获取评论列表失败：" + err.Error()})
+	}
+	context.JSON(http.StatusOK, gin.H{"msg": "获取评论列表成功", "data": comments})
+}

@@ -31,8 +31,15 @@ func (cr CommentRepository) ListComments(dto DTO.ListCommentDTO) (*[]model.Comme
 	}
 
 	var comments []model.Comment
-	offset := (dto.PageNum - 1) * dto.PageSize
-	if err := tx.Where("post_id = ?", dto.PostId).Offset(offset).Limit(dto.PageSize).Find(&comments).Error; err != nil {
+	if dto.PageNum != 0 && dto.PageSize != 0 {
+		offset := (dto.PageNum - 1) * dto.PageSize
+		if err := tx.Where("post_id = ?", dto.PostId).Offset(offset).Limit(dto.PageSize).Find(&comments).Error; err != nil {
+			logger.Error("PostRepository.ListPosts db.Find is error", zap.Error(err))
+			return nil, 0, err
+		}
+	}
+
+	if err := tx.Where("post_id = ?", dto.PostId).Find(&comments).Error; err != nil {
 		logger.Error("PostRepository.ListPosts db.Find is error", zap.Error(err))
 		return nil, 0, err
 	}
